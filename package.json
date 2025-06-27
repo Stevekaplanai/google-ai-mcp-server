@@ -38,6 +38,7 @@
   "dependencies": {
     "@modelcontextprotocol/sdk": "^0.5.0",
     "axios": "^1.6.8",
+    "dotenv": "^16.4.5",
     "google-auth-library": "^9.6.3",
     "zod": "^3.22.4"
   },

@@ -33,7 +33,7 @@ A comprehensive Model Context Protocol (MCP) server that integrates Google's cut
 npm install -g @mcpservers/google-ai
 
 # Or clone and build from source
-git clone https://github.com/stevekaplan/google-ai-mcp-server.git
+git clone https://github.com/stevekaplanai/google-ai-mcp-server.git
 cd google-ai-mcp-server
 npm install
 npm run build
@@ -41,7 +41,30 @@ npm run build
 
 ### 2. Google Cloud Setup
 
-Create a service account and download credentials:
+For testing with Steve's project (starry-center-464218-r3):
+
+```bash
+# Set your project
+gcloud config set project starry-center-464218-r3
+
+# Enable required APIs
+gcloud services enable aiplatform.googleapis.com
+
+# Create service account (if not already done)
+gcloud iam service-accounts create mcp-vertex-ai \
+  --display-name="MCP Vertex AI Service Account"
+
+# Grant necessary permissions
+gcloud projects add-iam-policy-binding starry-center-464218-r3 \
+  --member="serviceAccount:mcp-vertex-ai@starry-center-464218-r3.iam.gserviceaccount.com" \
+  --role="roles/aiplatform.user"
+
+# Generate key
+gcloud iam service-accounts keys create credentials.json \
+  --iam-account=mcp-vertex-ai@starry-center-464218-r3.iam.gserviceaccount.com
+```
+
+For general setup:
 
 ```bash
 # Create service account

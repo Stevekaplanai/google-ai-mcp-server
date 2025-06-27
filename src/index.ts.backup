@@ -1,0 +1,521 @@
+#!/usr/bin/env node
+import { Server } from '@modelcontextprotocol/sdk/server/index.js';
+import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
+import {
+  CallToolRequestSchema,
+  ListToolsRequestSchema,
+} from '@modelcontextprotocol/sdk/types.js';
+import { z } from 'zod';
+import { GoogleAuth } from 'google-auth-library';
+import axios from 'axios';
+import dotenv from 'dotenv';
+
+// Load environment variables
+dotenv.config();
+
+// Configuration schema
+const ConfigSchema = z.object({
+  projectId: z.string(),
+  location: z.string().default('us-central1'),
+  credentials: z.object({
+    type: z.string(),
+    project_id: z.string(),
+    private_key_id: z.string(),
+    private_key: z.string(),
+    client_email: z.string(),
+    client_id: z.string(),
+    auth_uri: z.string(),
+    token_uri: z.string(),
+    auth_provider_x509_cert_url: z.string(),
+    client_x509_cert_url: z.string(),
+  }).optional(),
+});
+
+type Config = z.infer<typeof ConfigSchema>;
+// Tool parameter schemas
+const VeoGenerateSchema = z.object({
+  prompt: z.string().describe('Text prompt for video generation'),
+  imageBase64: z.string().optional().describe('Base64-encoded image for image-to-video generation'),
+  duration: z.number().min(5).max(8).default(5).describe('Video duration in seconds'),
+  aspectRatio: z.enum(['16:9', '9:16', '1:1']).default('16:9').describe('Video aspect ratio'),
+  sampleCount: z.number().min(1).max(4).default(1).describe('Number of videos to generate'),
+  negativePrompt: z.string().optional().describe('What to avoid in the generation'),
+  personGeneration: z.enum(['allow', 'disallow']).default('allow').describe('Whether to allow person generation'),
+  outputStorageUri: z.string().optional().describe('GCS bucket URI for output (e.g., gs://bucket/path/)'),
+});
+
+const ImagenGenerateSchema = z.object({
+  prompt: z.string().describe('Text prompt for image generation'),
+  sampleCount: z.number().min(1).max(8).default(1).describe('Number of images to generate'),
+  aspectRatio: z.enum(['1:1', '16:9', '9:16', '4:3', '3:4']).default('1:1').describe('Image aspect ratio'),
+  negativePrompt: z.string().optional().describe('What to avoid in the generation'),
+  personGeneration: z.enum(['allow', 'disallow']).default('allow').describe('Whether to allow person generation'),
+  language: z.string().default('en').describe('Language for the prompt'),
+  outputStorageUri: z.string().optional().describe('GCS bucket URI for output'),
+});
+
+const GeminiGenerateSchema = z.object({
+  prompt: z.string().describe('Text prompt for Gemini'),
+  model: z.enum(['gemini-1.5-pro', 'gemini-1.5-flash', 'gemini-2.0-flash-exp']).default('gemini-1.5-flash').describe('Gemini model to use'),
+  temperature: z.number().min(0).max(2).default(0.7).describe('Temperature for randomness'),
+  maxTokens: z.number().min(1).max(8192).default(2048).describe('Maximum tokens to generate'),
+  systemInstruction: z.string().optional().describe('System instruction for the model'),
+});
+const LyriaGenerateSchema = z.object({
+  textPrompt: z.string().describe('Text description of the music to generate'),
+  musicalStructure: z.enum(['verse-chorus', 'free-form', 'instrumental']).default('free-form').describe('Musical structure'),
+  genre: z.string().optional().describe('Musical genre (e.g., pop, jazz, classical)'),
+  mood: z.string().optional().describe('Mood of the music (e.g., happy, sad, energetic)'),
+  tempo: z.enum(['slow', 'medium', 'fast']).optional().describe('Tempo of the music'),
+  durationSeconds: z.number().min(1).max(60).default(30).describe('Duration in seconds'),
+  outputStorageUri: z.string().optional().describe('GCS bucket URI for output'),
+});
+
+const CheckOperationSchema = z.object({
+  operationName: z.string().describe('The operation name returned from a previous generation request'),
+});
+
+// Configuration
+let config: Config;
+let auth: GoogleAuth | null = null;
+const USE_MOCK = process.env.USE_MOCK === 'true' || !process.env.GOOGLE_CLOUD_PROJECT;
+
+// Initialize configuration
+function initializeConfig() {
+  const projectId = process.env.GOOGLE_CLOUD_PROJECT || 'mock-project';
+  const location = process.env.GOOGLE_CLOUD_LOCATION || 'us-central1';
+  
+  let credentials;
+  if (process.env.GOOGLE_APPLICATION_CREDENTIALS_JSON) {
+    try {
+      credentials = JSON.parse(process.env.GOOGLE_APPLICATION_CREDENTIALS_JSON);
+    } catch (error) {
+      console.error('Failed to parse credentials JSON:', error);
+    }
+  }
+  config = ConfigSchema.parse({
+    projectId,
+    location,
+    credentials,
+  });
+
+  if (!USE_MOCK && credentials) {
+    auth = new GoogleAuth({
+      credentials,
+      scopes: ['https://www.googleapis.com/auth/cloud-platform'],
+    });
+  }
+}
+
+// Mock data generators
+function generateMockVideo() {
+  return {
+    operationName: `projects/${config.projectId}/locations/${config.location}/operations/mock-veo-${Date.now()}`,
+    status: 'RUNNING',
+    metadata: {
+      createTime: new Date().toISOString(),
+      prompt: 'Mock video generation',
+      duration: 5,
+      aspectRatio: '16:9',
+    },
+    mockVideoUrl: 'https://storage.googleapis.com/mock-bucket/sample-video.mp4',
+    message: 'This is a mock response. VEO 3 integration pending allowlist access.',
+  };
+}
+function generateMockImage() {
+  return {
+    operationName: `projects/${config.projectId}/locations/${config.location}/operations/mock-imagen-${Date.now()}`,
+    status: 'SUCCEEDED',
+    predictions: [
+      {
+        imageUrl: 'https://storage.googleapis.com/mock-bucket/sample-image-1.png',
+        mimeType: 'image/png',
+        seed: Math.floor(Math.random() * 1000000),
+      },
+    ],
+    metadata: {
+      createTime: new Date().toISOString(),
+      prompt: 'Mock image generation',
+      aspectRatio: '1:1',
+    },
+    message: 'This is a mock response. Real Imagen 4 integration ready when configured.',
+  };
+}
+
+function generateMockGeminiResponse(prompt: string) {
+  return {
+    response: `This is a mock Gemini response to: "${prompt}". The actual Gemini integration is ready to be configured with your Google Cloud credentials.`,
+    model: 'gemini-1.5-flash',
+    tokenCount: {
+      promptTokens: prompt.split(' ').length,
+      completionTokens: 42,
+      totalTokens: prompt.split(' ').length + 42,
+    },
+  };
+}
+function generateMockMusic() {
+  return {
+    operationName: `projects/${config.projectId}/locations/${config.location}/operations/mock-lyria-${Date.now()}`,
+    status: 'RUNNING',
+    metadata: {
+      createTime: new Date().toISOString(),
+      textPrompt: 'Mock music generation',
+      durationSeconds: 30,
+      genre: 'ambient',
+    },
+    mockAudioUrl: 'https://storage.googleapis.com/mock-bucket/sample-music.mp3',
+    message: 'This is a mock response. Lyria 2 integration ready when configured.',
+  };
+}
+
+// MCP Server setup
+const server = new Server(
+  {
+    name: 'google-ai-mcp-server',
+    version: '1.0.0',
+  },
+  {
+    capabilities: {
+      tools: {},
+    },
+  }
+);
+
+// Tool definitions
+const tools = [
+  {
+    name: 'veo_generate_video',
+    description: 'Generate videos using Google VEO 3 (5-8 seconds with audio)',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        prompt: { type: 'string', description: 'Text prompt for video generation' },
+        imageBase64: { type: 'string', description: 'Base64-encoded image for image-to-video generation' },
+        duration: { type: 'number', minimum: 5, maximum: 8, default: 5, description: 'Video duration in seconds' },
+        aspectRatio: { enum: ['16:9', '9:16', '1:1'], default: '16:9', description: 'Video aspect ratio' },
+        sampleCount: { type: 'number', minimum: 1, maximum: 4, default: 1, description: 'Number of videos to generate' },
+        negativePrompt: { type: 'string', description: 'What to avoid in the generation' },
+        personGeneration: { enum: ['allow', 'disallow'], default: 'allow', description: 'Whether to allow person generation' },
+        outputStorageUri: { type: 'string', description: 'GCS bucket URI for output' },
+      },
+      required: ['prompt'],
+    },
+  },
+  {
+    name: 'imagen_generate_image',
+    description: 'Generate photorealistic images using Google Imagen 4',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        prompt: { type: 'string', description: 'Text prompt for image generation' },
+        sampleCount: { type: 'number', minimum: 1, maximum: 8, default: 1, description: 'Number of images to generate' },
+        aspectRatio: { enum: ['1:1', '16:9', '9:16', '4:3', '3:4'], default: '1:1', description: 'Image aspect ratio' },
+        negativePrompt: { type: 'string', description: 'What to avoid in the generation' },
+        personGeneration: { enum: ['allow', 'disallow'], default: 'allow', description: 'Whether to allow person generation' },
+        language: { type: 'string', default: 'en', description: 'Language for the prompt' },
+        outputStorageUri: { type: 'string', description: 'GCS bucket URI for output' },
+      },
+      required: ['prompt'],
+    },
+  },
+  {
+    name: 'gemini_generate_text',
+    description: 'Generate text using Google Gemini models',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        prompt: { type: 'string', description: 'Text prompt for Gemini' },
+        model: { enum: ['gemini-1.5-pro', 'gemini-1.5-flash', 'gemini-2.0-flash-exp'], default: 'gemini-1.5-flash', description: 'Gemini model to use' },
+        temperature: { type: 'number', minimum: 0, maximum: 2, default: 0.7, description: 'Temperature for randomness' },
+        maxTokens: { type: 'number', minimum: 1, maximum: 8192, default: 2048, description: 'Maximum tokens to generate' },
+        systemInstruction: { type: 'string', description: 'System instruction for the model' },
+      },
+      required: ['prompt'],
+    },
+  },
+  {
+    name: 'lyria_generate_music',
+    description: 'Generate music using Google Lyria 2 (up to 60 seconds)',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        textPrompt: { type: 'string', description: 'Text description of the music to generate' },
+        musicalStructure: { enum: ['verse-chorus', 'free-form', 'instrumental'], default: 'free-form', description: 'Musical structure' },
+        genre: { type: 'string', description: 'Musical genre' },
+        mood: { type: 'string', description: 'Mood of the music' },
+        tempo: { enum: ['slow', 'medium', 'fast'], description: 'Tempo of the music' },
+        durationSeconds: { type: 'number', minimum: 1, maximum: 60, default: 30, description: 'Duration in seconds' },
+        outputStorageUri: { type: 'string', description: 'GCS bucket URI for output' },
+      },
+      required: ['textPrompt'],
+    },
+  },
+  {
+    name: 'check_operation_status',
+    description: 'Check the status of a long-running operation',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        operationName: { type: 'string', description: 'Operation name from a previous request' },
+      },
+      required: ['operationName'],
+    },
+  },
+];
+
+// List tools handler
+server.setRequestHandler(ListToolsRequestSchema, async () => {
+  return { tools };
+});
+
+// Tool execution handler
+server.setRequestHandler(CallToolRequestSchema, async (request) => {
+  const { name, arguments: args } = request.params;
+    
+    if (USE_MOCK) {
+      return generateMockVideo();
+    }
+
+    try {
+      // Real VEO 3 implementation (placeholder for when allowlist is approved)
+      const accessToken = await auth!.getAccessToken();
+      const endpoint = `https://${config.location}-aiplatform.googleapis.com/v1/projects/${config.projectId}/locations/${config.location}/publishers/google/models/veo:generateVideo`;
+      
+      const response = await axios.post(
+        endpoint,
+        {
+          prompt: validated.prompt,
+          imageBase64: validated.imageBase64,
+          duration: validated.duration,
+          aspectRatio: validated.aspectRatio,
+          sampleCount: validated.sampleCount,
+          negativePrompt: validated.negativePrompt,
+          personGeneration: validated.personGeneration,
+          outputStorageUri: validated.outputStorageUri,
+        },
+        {
+          headers: {
+            'Authorization': `Bearer ${accessToken}`,
+            'Content-Type': 'application/json',
+          },
+        }
+      );
+      
+      return response.data;
+    } catch (error) {      console.error('VEO 3 generation error:', error);
+      throw new Error(`VEO 3 generation failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  },
+});
+
+// Imagen 4 Image Generation Handler
+server.addTool({
+  name: 'imagen_generate_image',
+  description: 'Generate photorealistic images using Google Imagen 4',
+  inputSchema: ImagenGenerateSchema,
+  handler: async (input) => {
+    const validated = ImagenGenerateSchema.parse(input);
+    
+    if (USE_MOCK) {
+      return generateMockImage();
+    }
+
+    try {
+      const accessToken = await auth!.getAccessToken();
+      const endpoint = `https://${config.location}-aiplatform.googleapis.com/v1/projects/${config.projectId}/locations/${config.location}/publishers/google/models/imagen-4:generateImages`;
+      
+      const response = await axios.post(
+        endpoint,
+        {
+          prompt: validated.prompt,
+          sampleCount: validated.sampleCount,
+          aspectRatio: validated.aspectRatio,
+          negativePrompt: validated.negativePrompt,
+          personGeneration: validated.personGeneration,
+          language: validated.language,          outputStorageUri: validated.outputStorageUri,
+        },
+        {
+          headers: {
+            'Authorization': `Bearer ${accessToken}`,
+            'Content-Type': 'application/json',
+          },
+        }
+      );
+      
+      return response.data;
+    } catch (error) {
+      console.error('Imagen 4 generation error:', error);
+      throw new Error(`Imagen 4 generation failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  },
+});
+
+// Gemini Text Generation Handler
+server.addTool({
+  name: 'gemini_generate_text',
+  description: 'Generate text using Google Gemini models',
+  inputSchema: GeminiGenerateSchema,
+  handler: async (input) => {
+    const validated = GeminiGenerateSchema.parse(input);
+    
+    if (USE_MOCK) {
+      return generateMockGeminiResponse(validated.prompt);
+    }
+
+    try {      const accessToken = await auth!.getAccessToken();
+      const endpoint = `https://${config.location}-aiplatform.googleapis.com/v1/projects/${config.projectId}/locations/${config.location}/publishers/google/models/${validated.model}:generateContent`;
+      
+      const request: any = {
+        contents: [{
+          role: 'user',
+          parts: [{ text: validated.prompt }],
+        }],
+        generationConfig: {
+          temperature: validated.temperature,
+          maxOutputTokens: validated.maxTokens,
+        },
+      };
+
+      if (validated.systemInstruction) {
+        request.systemInstruction = {
+          parts: [{ text: validated.systemInstruction }],
+        };
+      }
+      
+      const response = await axios.post(endpoint, request, {
+        headers: {
+          'Authorization': `Bearer ${accessToken}`,
+          'Content-Type': 'application/json',
+        },
+      });
+      
+      return {
+        response: response.data.candidates[0].content.parts[0].text,
+        model: validated.model,
+        tokenCount: response.data.usageMetadata,      };
+    } catch (error) {
+      console.error('Gemini generation error:', error);
+      throw new Error(`Gemini generation failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  },
+});
+
+// Lyria 2 Music Generation Handler
+server.addTool({
+  name: 'lyria_generate_music',
+  description: 'Generate music using Google Lyria 2 (up to 60 seconds)',
+  inputSchema: LyriaGenerateSchema,
+  handler: async (input) => {
+    const validated = LyriaGenerateSchema.parse(input);
+    
+    if (USE_MOCK) {
+      return generateMockMusic();
+    }
+
+    try {
+      const accessToken = await auth!.getAccessToken();
+      const endpoint = `https://${config.location}-aiplatform.googleapis.com/v1/projects/${config.projectId}/locations/${config.location}/publishers/google/models/lyria-2:generateMusic`;
+      
+      const response = await axios.post(
+        endpoint,
+        {
+          textPrompt: validated.textPrompt,
+          musicalStructure: validated.musicalStructure,
+          genre: validated.genre,          mood: validated.mood,
+          tempo: validated.tempo,
+          durationSeconds: validated.durationSeconds,
+          outputStorageUri: validated.outputStorageUri,
+        },
+        {
+          headers: {
+            'Authorization': `Bearer ${accessToken}`,
+            'Content-Type': 'application/json',
+          },
+        }
+      );
+      
+      return response.data;
+    } catch (error) {
+      console.error('Lyria 2 generation error:', error);
+      throw new Error(`Lyria 2 generation failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  },
+});
+
+// Check Operation Status Handler
+server.addTool({
+  name: 'check_operation_status',
+  description: 'Check the status of a long-running operation (for VEO, Imagen, or Lyria)',
+  inputSchema: CheckOperationSchema,
+  handler: async (input) => {
+    const validated = CheckOperationSchema.parse(input);
+    
+    if (USE_MOCK) {      return {
+        operationName: validated.operationName,
+        status: 'SUCCEEDED',
+        done: true,
+        response: {
+          message: 'Mock operation completed successfully',
+          results: ['https://storage.googleapis.com/mock-bucket/result.mp4'],
+        },
+      };
+    }
+
+    try {
+      const accessToken = await auth!.getAccessToken();
+      const response = await axios.get(
+        `https://${config.location}-aiplatform.googleapis.com/v1/${validated.operationName}`,
+        {
+          headers: {
+            'Authorization': `Bearer ${accessToken}`,
+          },
+        }
+      );
+      
+      return response.data;
+    } catch (error) {
+      console.error('Operation check error:', error);
+      throw new Error(`Operation check failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  },
+});
+// Main function
+async function main() {
+  console.log('🚀 Google AI MCP Server starting...');
+  
+  // Initialize configuration
+  initializeConfig();
+  
+  if (USE_MOCK) {
+    console.log('⚠️  Running in MOCK mode. Set GOOGLE_CLOUD_PROJECT to use real APIs.');
+    console.log('📝 Mock responses will be returned for all requests.');
+  } else {
+    console.log(`✅ Connected to Google Cloud Project: ${config.projectId}`);
+    console.log(`📍 Location: ${config.location}`);
+  }
+  
+  // Create transport
+  const transport = new StdioServerTransport();
+  
+  // Connect server to transport
+  await server.connect(transport);
+  
+  console.log('✅ Google AI MCP Server is running');
+  console.log('🔧 Available tools:');
+  console.log('  - veo_generate_video (VEO 3)');
+  console.log('  - imagen_generate_image (Imagen 4)');
+  console.log('  - gemini_generate_text (Gemini)');
+  console.log('  - lyria_generate_music (Lyria 2)');
+  console.log('  - check_operation_status');
+}
+// Error handling
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('Unhandled Rejection at:', promise, 'reason:', reason);
+  process.exit(1);
+});
+
+// Run the server
+main().catch((error) => {
+  console.error('Server error:', error);
+  process.exit(1);
+});
