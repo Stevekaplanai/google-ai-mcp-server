@@ -244,7 +244,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 - **Issues**: [GitHub Issues](https://github.com/stevekaplan/google-ai-mcp-server/issues)
 - **Discussions**: [GitHub Discussions](https://github.com/stevekaplan/google-ai-mcp-server/discussions)
-- **Email**: steve@example.com
+- **Email**: steve@stevekaplan.ai
 
 ## 🌟 Star History
 
