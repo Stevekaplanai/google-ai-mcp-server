@@ -1,0 +1,30 @@
+{
+  "name": "google-ai-mcp",
+  "version": "1.0.0",
+  "description": "Complete MCP server for Google AI services - VEO 3 video generation, Imagen 4 images, Gemini text, and Lyria 2 music through Vertex AI",
+  "author": {
+    "name": "Steve Kaplan",
+    "email": "steve@example.com",
+    "url": "https://github.com/stevekaplan"
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/stevekaplan/google-ai-mcp-server"
+  },
+  "homepage": "https://github.com/stevekaplan/google-ai-mcp-server#readme",
+  "categories": [
+    "AI Tools",
+    "Media Generation",
+    "Google Cloud"
+  ],
+  "tags": [
+    "google",
+    "vertex-ai",
+    "veo",
+    "imagen",
+    "gemini",
+    "lyria",
+    "video-generation",
+    "image-generation"
+  ],
