@@ -1,0 +1,21 @@
+name: google-ai-mcp
+version: 1.0.0
+description: Complete MCP server for Google AI services - VEO 3 video generation, Imagen 4 images, Gemini text, and Lyria 2 music through Vertex AI
+runtime: node
+main: dist/index.js
+build:
+  - npm install
+  - npm run build
+env:
+  - name: GOOGLE_CLOUD_PROJECT
+    description: Google Cloud project ID
+    required: false
+  - name: GOOGLE_CLOUD_LOCATION
+    description: Google Cloud location (default us-central1)
+    required: false
+  - name: GOOGLE_APPLICATION_CREDENTIALS_JSON
+    description: Google Cloud service account credentials as JSON string
+    required: false
+  - name: USE_MOCK
+    description: Use mock mode for testing (true/false)
+    required: false
