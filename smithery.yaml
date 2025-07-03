@@ -1,6 +1,7 @@
 name: google-ai-mcp
 version: 1.0.0
 description: Complete MCP server for Google AI services - VEO 3 video generation, Imagen 4 images, Gemini text, and Lyria 2 music through Vertex AI
+runtime: docker
 author:
   name: Steve Kaplan
   email: steve@stevekaplan.ai
@@ -8,8 +9,6 @@ author:
 license: MIT
 repository: https://github.com/Stevekaplanai/google-ai-mcp-server
 homepage: https://github.com/Stevekaplanai/google-ai-mcp-server#readme
-runtime: node
-main: dist/index.js
 categories:
   - AI Tools
   - Media Generation
@@ -27,14 +26,11 @@ tags:
   - music-generation
   - mcp
   - ai
-  - generative-ai
-build:
-  - npm install
-  - npm run build
-install:
-  npm:
-    global: true
-    package: "@mcpservers/google-ai"
+docker:
+  image: google-ai-mcp:latest
+  command: ["node", "/app/dist/index.js"]
+  ports: []
+  volumes: []
 env:
   - name: GOOGLE_CLOUD_PROJECT
     description: Google Cloud project ID
@@ -48,6 +44,7 @@ env:
     description: Google Cloud service account credentials as JSON string
     required: false
     default: ""
+    secret: true
   - name: USE_MOCK
     description: Use mock mode for testing (true/false)
     required: false
@@ -65,7 +62,6 @@ tools:
           type: string
           enum: ["1:1", "16:9", "9:16", "4:3", "3:4"]
           default: "1:1"
-          description: Image aspect ratio
         negativePrompt:
           type: string
           description: What to avoid in the generation
@@ -73,13 +69,11 @@ tools:
           type: string
           enum: ["allow", "disallow"]
           default: "allow"
-          description: Whether to allow person generation
         sampleCount:
           type: number
           minimum: 1
           maximum: 8
           default: 1
-          description: Number of images to generate
       required: ["prompt"]
   - name: veo_generate_video
     description: Generate videos using Google VEO 3 (5-8 seconds with audio)
@@ -93,13 +87,11 @@ tools:
           type: string
           enum: ["16:9", "9:16", "1:1"]
           default: "16:9"
-          description: Video aspect ratio
         duration:
           type: number
           minimum: 5
           maximum: 8
           default: 5
-          description: Video duration in seconds
         imageBase64:
           type: string
           description: Base64-encoded image for image-to-video generation
@@ -119,19 +111,16 @@ tools:
           type: string
           enum: ["gemini-1.5-pro", "gemini-1.5-flash", "gemini-2.0-flash-exp"]
           default: "gemini-1.5-flash"
-          description: Gemini model to use
         temperature:
           type: number
           minimum: 0
           maximum: 2
           default: 0.7
-          description: Temperature for randomness
         maxTokens:
           type: number
           minimum: 1
           maximum: 8192
           default: 2048
-          description: Maximum tokens to generate
         systemInstruction:
           type: string
           description: System instruction for the model
@@ -149,7 +138,6 @@ tools:
           minimum: 1
           maximum: 60
           default: 30
-          description: Duration in seconds
         genre:
           type: string
           description: Musical genre
@@ -170,20 +158,3 @@ tools:
           type: string
           description: Operation name from a previous request
       required: ["operationName"]
-resources:
-  - uri: google-ai://models
-    name: Available Models
-    description: Information about available Google AI models and their capabilities
-    mimeType: application/json
-  - uri: google-ai://pricing
-    name: Pricing Information
-    description: Current pricing for each Google AI service
-    mimeType: application/json
-claude_desktop_config:
-  mcpServers:
-    google-ai:
-      command: npx
-      args: ["-y", "@mcpservers/google-ai"]
-      env:
-        GOOGLE_CLOUD_PROJECT: "your-project-id"
-        GOOGLE_APPLICATION_CREDENTIALS_JSON: "{your-service-account-json}"

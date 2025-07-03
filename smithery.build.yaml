@@ -1,0 +1,45 @@
+# Smithery Build Configuration
+# This file explicitly defines how to build the Google AI MCP Server
+
+# Build environment
+runtime: node:20
+
+# Build steps
+build:
+  # Install dependencies
+  - npm ci
+  
+  # Build TypeScript
+  - npm run build
+  
+  # Verify build output
+  - test -f dist/index.js || exit 1
+
+# Entry point
+entrypoint: dist/index.js
+
+# Required files for deployment
+files:
+  - package.json
+  - package-lock.json
+  - tsconfig.json
+  - src/**/*.ts
+  - dist/**/*.js
+  - dist/**/*.d.ts
+
+# Environment variables
+env:
+  NODE_ENV: production
+
+# Health check
+healthcheck:
+  test: ["CMD", "node", "-e", "console.log('healthy')"]
+  interval: 30s
+  timeout: 3s
+  retries: 3
+
+# Metadata
+metadata:
+  node_version: "20"
+  typescript: true
+  mcp_version: "1.0.0"
