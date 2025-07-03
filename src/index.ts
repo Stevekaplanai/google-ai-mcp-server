@@ -9,6 +9,9 @@ import { z } from 'zod';
 import { GoogleAuth } from 'google-auth-library';
 import axios from 'axios';
 import dotenv from 'dotenv';
+import { ImagenService } from './services/imagen.service.js';
+import { VeoService } from './services/veo.service.js';
+import { LyriaService } from './services/lyria.service.js';
 
 // Load environment variables
 dotenv.config();
@@ -35,6 +38,9 @@ type Config = z.infer<typeof ConfigSchema>;
 // Configuration
 let config: Config;
 let auth: GoogleAuth | null = null;
+let imagenService: ImagenService | null = null;
+let veoService: VeoService | null = null;
+let lyriaService: LyriaService | null = null;
 const USE_MOCK = process.env.USE_MOCK === 'true' || !process.env.GOOGLE_CLOUD_PROJECT;
 
 // Initialize configuration
@@ -63,6 +69,24 @@ function initializeConfig() {
       scopes: ['https://www.googleapis.com/auth/cloud-platform'],
     });
   }
+
+  // Initialize Imagen service
+  imagenService = new ImagenService('', { 
+    mockMode: USE_MOCK,
+    debug: true
+  });
+  
+  // Initialize VEO service
+  veoService = new VeoService('', {
+    mockMode: USE_MOCK,
+    debug: true
+  });
+  
+  // Initialize Lyria service
+  lyriaService = new LyriaService({
+    mockMode: USE_MOCK,
+    debug: true
+  });
 }
 
 // MCP Server setup
@@ -199,182 +223,63 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
 
 // VEO 3 Handler
 async function handleVeoGenerate(args: any) {
-  if (USE_MOCK) {
-    // Mock response for testing
-    const operationId = `mock-veo-${Date.now()}`;
-    const sampleCount = args.sampleCount || 1;
-    const videos = [];
-    
-    // Generate mock video URLs
-    for (let i = 0; i < sampleCount; i++) {
-      videos.push({
-        uri: `gs://mock-bucket/veo-output/${operationId}/video_${i}.mp4`,
-        previewUri: `https://storage.googleapis.com/mock-bucket/veo-output/${operationId}/preview_${i}.gif`,
-        metadata: {
-          duration: args.duration || 5,
-          aspectRatio: args.aspectRatio || '16:9',
-          format: 'mp4',
-          hasAudio: true,
-          resolution: args.aspectRatio === '16:9' ? '1920x1080' : args.aspectRatio === '9:16' ? '1080x1920' : '1080x1080',
-          fileSize: `${Math.floor(Math.random() * 50) + 10}MB`,
-          frameRate: 30,
-        },
-      });
-    }
-    
-    return {
-      content: [
-        {
-          type: 'text',
-          text: JSON.stringify({
-            operationName: `projects/${config.projectId}/locations/${config.location}/operations/${operationId}`,
-            status: 'PROCESSING',
-            metadata: {
-              createTime: new Date().toISOString(),
-              target: 'veo-video-generation',
-              verb: 'generate',
-              requestedCancellation: false,
-              apiVersion: 'v1',
-              estimatedCompletionTime: new Date(Date.now() + 120000).toISOString(), // 2 minutes
-            },
-            done: false,
-            response: {
-              videos,
-              prompt: args.prompt,
-              negativePrompt: args.negativePrompt,
-              modelVersion: 'veo-3-latest',
-              processingDetails: {
-                stage: 'Generating video frames',
-                progress: 15,
-                estimatedTimeRemaining: 105,
-              },
-            },
-          }, null, 2),
-        },
-      ],
-    };
-  }
-
-  // TODO: Implement real VEO 3 API call when allowlist access is granted
-  // Requires special access and approval from Google
-  return {
-    content: [
-      {
-        type: 'text',
-        text: 'VEO 3 access pending. Please use mock mode (USE_MOCK=true) for testing.',
-      },
-    ],
-  };
-}
-
-// Imagen 4 Handler
-async function handleImagenGenerate(args: any) {
-  if (USE_MOCK) {
-    // Mock response for testing
-    const batchId = `mock-imagen-${Date.now()}`;
-    const sampleCount = args.sampleCount || 1;
-    const images = [];
-    
-    // Calculate dimensions based on aspect ratio
-    const dimensions: Record<string, { width: number; height: number }> = {
-      '1:1': { width: 1024, height: 1024 },
-      '16:9': { width: 1920, height: 1080 },
-      '9:16': { width: 1080, height: 1920 },
-      '4:3': { width: 1024, height: 768 },
-      '3:4': { width: 768, height: 1024 },
-    };
-    
-    const aspectRatio = args.aspectRatio || '1:1';
-    const { width, height } = dimensions[aspectRatio];
-    
-    for (let i = 0; i < sampleCount; i++) {
-      images.push({
-        uri: `gs://mock-bucket/imagen-output/${batchId}/image_${i}.png`,
-        downloadUri: `https://storage.googleapis.com/mock-bucket/imagen-output/${batchId}/image_${i}.png`,
-        metadata: {
-          aspectRatio,
-          format: 'png',
-          width,
-          height,
-          fileSize: `${Math.floor(Math.random() * 5) + 1}MB`,
-          colorSpace: 'sRGB',
-          bitDepth: 8,
-        },
-        safetyRatings: {
-          adult: 'VERY_UNLIKELY',
-          violence: 'VERY_UNLIKELY',
-          racy: 'VERY_UNLIKELY',
-        },
-      });
-    }
-    
-    return {
-      content: [
-        {
-          type: 'text',
-          text: JSON.stringify({
-            images,
-            prompt: args.prompt,
-            negativePrompt: args.negativePrompt,
-            modelVersion: 'imagen-4-latest',
-            generationTime: new Date().toISOString(),
-            parameters: {
-              language: args.language || 'en',
-              personGeneration: args.personGeneration || 'allow',
-              samples: sampleCount,
-            },
-            usage: {
-              creditsUsed: sampleCount * 0.01,
-              quotaRemaining: 9999,
-            },
-          }, null, 2),
-        },
-      ],
-    };
-  }
-
-  // Real Imagen API implementation
   try {
-    if (!auth) {
-      throw new Error('Google Cloud authentication not configured');
+    if (!veoService) {
+      throw new Error('VEO service not initialized');
     }
 
-    const token = await auth.getAccessToken();
-    const endpoint = `https://${config.location}-aiplatform.googleapis.com/v1/projects/${config.projectId}/locations/${config.location}/publishers/google/models/imagen-004:predict`;
-
-    const requestBody = {
-      instances: [
-        {
-          prompt: args.prompt,
-          sampleCount: args.sampleCount || 1,
-          aspectRatio: args.aspectRatio || '1:1',
-          negativePrompt: args.negativePrompt,
-          personGeneration: args.personGeneration || 'allow',
-          language: args.language || 'en',
-        },
-      ],
-      parameters: {
-        outputStorageUri: args.outputStorageUri,
-      },
-    };
-
-    const response = await axios.post(endpoint, requestBody, {
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json',
-      },
+    const result = await veoService.generateVideo({
+      prompt: args.prompt,
+      imageBase64: args.imageBase64,
+      duration: args.duration,
+      aspectRatio: args.aspectRatio,
+      sampleCount: args.sampleCount,
+      negativePrompt: args.negativePrompt,
+      personGeneration: args.personGeneration,
+      outputStorageUri: args.outputStorageUri
     });
 
     return {
       content: [
         {
           type: 'text',
-          text: JSON.stringify(response.data, null, 2),
+          text: JSON.stringify(result, null, 2),
         },
       ],
     };
   } catch (error) {
-    console.error('Imagen API error:', error);
+    console.error('VEO generation error:', error);
+    throw error;
+  }
+}
+
+// Imagen 4 Handler
+async function handleImagenGenerate(args: any) {
+  try {
+    if (!imagenService) {
+      throw new Error('Imagen service not initialized');
+    }
+
+    const result = await imagenService.generateImage(
+      args.prompt,
+      args.aspectRatio,
+      args.sampleCount,
+      args.negativePrompt,
+      args.personGeneration,
+      args.language,
+      args.outputStorageUri
+    );
+
+    return {
+      content: [
+        {
+          type: 'text',
+          text: JSON.stringify(result, null, 2),
+        },
+      ],
+    };
+  } catch (error) {
+    console.error('Imagen generation error:', error);
     throw error;
   }
 }
