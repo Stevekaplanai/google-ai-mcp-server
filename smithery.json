@@ -4,18 +4,18 @@
   "description": "Complete MCP server for Google AI services - VEO 3 video generation, Imagen 4 images, Gemini text, and Lyria 2 music through Vertex AI",
   "author": {
     "name": "Steve Kaplan",
-    "email": "steve@example.com",
-    "url": "https://github.com/stevekaplan"
+    "email": "steve@stevekaplan.ai",
+    "url": "https://github.com/Stevekaplanai"
   },
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/stevekaplan/google-ai-mcp-server"
+    "url": "https://github.com/Stevekaplanai/google-ai-mcp-server"
   },
-  "homepage": "https://github.com/stevekaplan/google-ai-mcp-server#readme",
+  "homepage": "https://github.com/Stevekaplanai/google-ai-mcp-server#readme",
   "categories": [
     "AI Tools",
-    "Media Generation",
+    "Media Generation", 
     "Google Cloud"
   ],
   "tags": [
@@ -26,5 +26,95 @@
     "gemini",
     "lyria",
     "video-generation",
-    "image-generation"
+    "image-generation",
+    "text-generation",
+    "music-generation",
+    "google-cloud",
+    "mcp",
+    "ai",
+    "generative-ai"
   ],
+  "features": [
+    "Generate photorealistic images with Imagen 4",
+    "Create videos with Google VEO 3",
+    "Generate text with Gemini models",
+    "Music generation with Lyria 2 (mock mode)",
+    "TypeScript support",
+    "Comprehensive error handling",
+    "Mock mode for testing",
+    "Service account and user authentication"
+  ],
+  "requirements": {
+    "node": ">=18.0.0",
+    "npm": ">=8.0.0"
+  },
+  "tools": [
+    {
+      "name": "imagen_generate_image",
+      "description": "Generate photorealistic images using Google Imagen 4",
+      "parameters": {
+        "prompt": "Text description of the image to generate",
+        "aspectRatio": "Image aspect ratio (1:1, 16:9, 9:16, 4:3, 3:4)",
+        "negativePrompt": "What to avoid in the generation",
+        "personGeneration": "Whether to allow person generation (allow/disallow)",
+        "sampleCount": "Number of images to generate (1-8)"
+      }
+    },
+    {
+      "name": "veo_generate_video",
+      "description": "Generate videos using Google VEO 3 (5-8 seconds with audio)",
+      "parameters": {
+        "prompt": "Text description of the video to generate",
+        "aspectRatio": "Video aspect ratio (16:9, 9:16, 1:1)",
+        "duration": "Video duration in seconds (5-8)",
+        "imageBase64": "Base64-encoded image for image-to-video generation",
+        "negativePrompt": "What to avoid in the generation"
+      }
+    },
+    {
+      "name": "gemini_generate_text",
+      "description": "Generate text using Google Gemini models",
+      "parameters": {
+        "prompt": "Text prompt for Gemini",
+        "model": "Gemini model to use (gemini-1.5-pro, gemini-1.5-flash, gemini-2.0-flash-exp)",
+        "temperature": "Temperature for randomness (0-2)",
+        "maxTokens": "Maximum tokens to generate (1-8192)",
+        "systemInstruction": "System instruction for the model"
+      }
+    },
+    {
+      "name": "lyria_generate_music",
+      "description": "Generate music using Google Lyria 2 (currently in mock mode)",
+      "parameters": {
+        "textPrompt": "Text description of the music to generate",
+        "durationSeconds": "Duration in seconds (1-60)",
+        "genre": "Musical genre",
+        "mood": "Mood of the music",
+        "tempo": "Tempo of the music (slow, medium, fast)"
+      }
+    },
+    {
+      "name": "check_operation_status",
+      "description": "Check the status of a long-running operation",
+      "parameters": {
+        "operationName": "Operation name from a previous request"
+      }
+    }
+  ],
+  "setup": {
+    "quickstart": "https://github.com/Stevekaplanai/google-ai-mcp-server#quickstart",
+    "detailed": "https://github.com/Stevekaplanai/google-ai-mcp-server/blob/master/QUICKSTART.md"
+  },
+  "examples": [
+    {
+      "title": "Generate an Image",
+      "description": "Create a photorealistic landscape image",
+      "code": "await imagen_generate_image({ prompt: 'A serene mountain landscape at sunset', aspectRatio: '16:9' })"
+    },
+    {
+      "title": "Generate a Video",
+      "description": "Create a short video with VEO 3",
+      "code": "await veo_generate_video({ prompt: 'A timelapse of clouds moving over a city skyline', duration: 5 })"
+    }
+  ]
+}

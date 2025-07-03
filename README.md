@@ -3,6 +3,8 @@
 [![MCP](https://img.shields.io/badge/MCP-v1.0-blue)](https://modelcontextprotocol.io)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.3-blue)](https://www.typescriptlang.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Smithery](https://img.shields.io/badge/Smithery-Featured-brightgreen)](https://smithery.ai/mcp/google-ai-mcp)
+[![npm](https://img.shields.io/npm/v/@mcpservers/google-ai)](https://www.npmjs.com/package/@mcpservers/google-ai)
 
 A comprehensive Model Context Protocol (MCP) server that integrates Google's cutting-edge AI services (VEO 3, Imagen 4, Gemini, and Lyria 2) with Anthropic's Claude Desktop application.
 
@@ -27,13 +29,26 @@ A comprehensive Model Context Protocol (MCP) server that integrates Google's cut
 
 ## 🚀 Quick Start
 
-### 1. Installation
-```bash
-# Install globally via npm
-npm install -g @mcpservers/google-ai
+### Option 1: Install via Smithery (Recommended)
 
-# Or clone and build from source
-git clone https://github.com/stevekaplanai/google-ai-mcp-server.git
+The easiest way to install is through [Smithery](https://smithery.ai):
+
+```bash
+npx @smithery/cli install google-ai-mcp
+```
+
+### Option 2: Install via npm
+
+```bash
+# Install globally
+npm install -g @mcpservers/google-ai
+```
+
+### Option 3: Build from source
+
+```bash
+# Clone and build from source
+git clone https://github.com/Stevekaplanai/google-ai-mcp-server.git
 cd google-ai-mcp-server
 npm install
 npm run build
@@ -243,6 +258,24 @@ Not all models are available in all regions. Try `us-central1` or check [availab
 - [ ] Webhook notifications
 - [ ] Usage analytics dashboard
 
+## 🚀 Available on Smithery
+
+This MCP server is available on [Smithery](https://smithery.ai/mcp/google-ai-mcp), the MCP server registry:
+
+### Quick Install via Smithery CLI
+```bash
+npx @smithery/cli install google-ai-mcp
+```
+
+### Features on Smithery
+- ✅ One-click installation
+- ✅ Automatic Claude Desktop configuration
+- ✅ Managed updates
+- ✅ Community support
+- ✅ Usage analytics
+
+Visit our [Smithery page](https://smithery.ai/mcp/google-ai-mcp) for more information.
+
 ## 🤝 Contributing
 
 Contributions are welcome! Please:
@@ -265,14 +298,14 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 📞 Support
 
-- **Issues**: [GitHub Issues](https://github.com/stevekaplan/google-ai-mcp-server/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/stevekaplan/google-ai-mcp-server/discussions)
+- **Issues**: [GitHub Issues](https://github.com/Stevekaplanai/google-ai-mcp-server/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/Stevekaplanai/google-ai-mcp-server/discussions)
 - **Email**: steve@stevekaplan.ai
 
 ## 🌟 Star History
 
-[![Star History Chart](https://api.star-history.com/svg?repos=stevekaplan/google-ai-mcp-server&type=Date)](https://star-history.com/#stevekaplan/google-ai-mcp-server&Date)
+[![Star History Chart](https://api.star-history.com/svg?repos=Stevekaplanai/google-ai-mcp-server&type=Date)](https://star-history.com/#Stevekaplanai/google-ai-mcp-server&Date)
 
 ---
 
-Made with ❤️ by [Steve Kaplan](https://github.com/stevekaplan)
+Made with ❤️ by [Steve Kaplan](https://github.com/Stevekaplanai)

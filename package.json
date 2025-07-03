@@ -29,12 +29,20 @@
     "video-generation",
     "image-generation",
     "llm"
-  ],  "author": "Steve Kaplan",
+  ],  "author": {
+    "name": "Steve Kaplan",
+    "email": "steve@stevekaplan.ai",
+    "url": "https://stevekaplan.ai"
+  },
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/stevekaplan/google-ai-mcp-server.git"
+    "url": "https://github.com/Stevekaplanai/google-ai-mcp-server.git"
   },
+  "bugs": {
+    "url": "https://github.com/Stevekaplanai/google-ai-mcp-server/issues"
+  },
+  "homepage": "https://github.com/Stevekaplanai/google-ai-mcp-server#readme",
   "dependencies": {
     "@modelcontextprotocol/sdk": "^0.5.0",
     "axios": "^1.6.8",

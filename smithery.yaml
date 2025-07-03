@@ -1,21 +1,189 @@
 name: google-ai-mcp
 version: 1.0.0
 description: Complete MCP server for Google AI services - VEO 3 video generation, Imagen 4 images, Gemini text, and Lyria 2 music through Vertex AI
+author:
+  name: Steve Kaplan
+  email: steve@stevekaplan.ai
+  url: https://stevekaplan.ai
+license: MIT
+repository: https://github.com/Stevekaplanai/google-ai-mcp-server
+homepage: https://github.com/Stevekaplanai/google-ai-mcp-server#readme
 runtime: node
 main: dist/index.js
+categories:
+  - AI Tools
+  - Media Generation
+  - Google Cloud
+tags:
+  - google
+  - vertex-ai
+  - veo
+  - imagen
+  - gemini
+  - lyria
+  - video-generation
+  - image-generation
+  - text-generation
+  - music-generation
+  - mcp
+  - ai
+  - generative-ai
 build:
   - npm install
   - npm run build
+install:
+  npm:
+    global: true
+    package: "@mcpservers/google-ai"
 env:
   - name: GOOGLE_CLOUD_PROJECT
     description: Google Cloud project ID
     required: false
+    default: ""
   - name: GOOGLE_CLOUD_LOCATION
     description: Google Cloud location (default us-central1)
     required: false
+    default: "us-central1"
   - name: GOOGLE_APPLICATION_CREDENTIALS_JSON
     description: Google Cloud service account credentials as JSON string
     required: false
+    default: ""
   - name: USE_MOCK
     description: Use mock mode for testing (true/false)
     required: false
+    default: "false"
+tools:
+  - name: imagen_generate_image
+    description: Generate photorealistic images using Google Imagen 4
+    inputSchema:
+      type: object
+      properties:
+        prompt:
+          type: string
+          description: Text description of the image to generate
+        aspectRatio:
+          type: string
+          enum: ["1:1", "16:9", "9:16", "4:3", "3:4"]
+          default: "1:1"
+          description: Image aspect ratio
+        negativePrompt:
+          type: string
+          description: What to avoid in the generation
+        personGeneration:
+          type: string
+          enum: ["allow", "disallow"]
+          default: "allow"
+          description: Whether to allow person generation
+        sampleCount:
+          type: number
+          minimum: 1
+          maximum: 8
+          default: 1
+          description: Number of images to generate
+      required: ["prompt"]
+  - name: veo_generate_video
+    description: Generate videos using Google VEO 3 (5-8 seconds with audio)
+    inputSchema:
+      type: object
+      properties:
+        prompt:
+          type: string
+          description: Text description of the video to generate
+        aspectRatio:
+          type: string
+          enum: ["16:9", "9:16", "1:1"]
+          default: "16:9"
+          description: Video aspect ratio
+        duration:
+          type: number
+          minimum: 5
+          maximum: 8
+          default: 5
+          description: Video duration in seconds
+        imageBase64:
+          type: string
+          description: Base64-encoded image for image-to-video generation
+        negativePrompt:
+          type: string
+          description: What to avoid in the generation
+      required: ["prompt"]
+  - name: gemini_generate_text
+    description: Generate text using Google Gemini models
+    inputSchema:
+      type: object
+      properties:
+        prompt:
+          type: string
+          description: Text prompt for Gemini
+        model:
+          type: string
+          enum: ["gemini-1.5-pro", "gemini-1.5-flash", "gemini-2.0-flash-exp"]
+          default: "gemini-1.5-flash"
+          description: Gemini model to use
+        temperature:
+          type: number
+          minimum: 0
+          maximum: 2
+          default: 0.7
+          description: Temperature for randomness
+        maxTokens:
+          type: number
+          minimum: 1
+          maximum: 8192
+          default: 2048
+          description: Maximum tokens to generate
+        systemInstruction:
+          type: string
+          description: System instruction for the model
+      required: ["prompt"]
+  - name: lyria_generate_music
+    description: Generate music using Google Lyria 2 (currently in mock mode)
+    inputSchema:
+      type: object
+      properties:
+        textPrompt:
+          type: string
+          description: Text description of the music to generate
+        durationSeconds:
+          type: number
+          minimum: 1
+          maximum: 60
+          default: 30
+          description: Duration in seconds
+        genre:
+          type: string
+          description: Musical genre
+        mood:
+          type: string
+          description: Mood of the music
+        tempo:
+          type: string
+          enum: ["slow", "medium", "fast"]
+          description: Tempo of the music
+      required: ["textPrompt"]
+  - name: check_operation_status
+    description: Check the status of a long-running operation
+    inputSchema:
+      type: object
+      properties:
+        operationName:
+          type: string
+          description: Operation name from a previous request
+      required: ["operationName"]
+resources:
+  - uri: google-ai://models
+    name: Available Models
+    description: Information about available Google AI models and their capabilities
+    mimeType: application/json
+  - uri: google-ai://pricing
+    name: Pricing Information
+    description: Current pricing for each Google AI service
+    mimeType: application/json
+claude_desktop_config:
+  mcpServers:
+    google-ai:
+      command: npx
+      args: ["-y", "@mcpservers/google-ai"]
+      env:
+        GOOGLE_CLOUD_PROJECT: "your-project-id"
+        GOOGLE_APPLICATION_CREDENTIALS_JSON: "{your-service-account-json}"
