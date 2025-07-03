@@ -14,7 +14,8 @@
     "test": "jest",
     "lint": "eslint src --ext ts",
     "format": "prettier --write \"src/**/*.ts\"",
-    "prepare": "npm run build"
+    "prepare": "npm run build",
+    "verify": "node verify-deployment.js"
   },
   "keywords": [
     "mcp",

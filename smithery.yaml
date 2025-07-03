@@ -28,9 +28,12 @@ tags:
   - ai
 docker:
   image: google-ai-mcp:latest
-  command: ["node", "/app/dist/index.js"]
+  command: ["node", "/app/smithery-entrypoint.js"]
   ports: []
   volumes: []
+  build:
+    context: .
+    dockerfile: Dockerfile
 env:
   - name: GOOGLE_CLOUD_PROJECT
     description: Google Cloud project ID

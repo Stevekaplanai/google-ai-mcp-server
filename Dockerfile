@@ -20,6 +20,7 @@ RUN npm ci
 
 # Copy source files
 COPY src/ ./src/
+COPY smithery-entrypoint.js ./
 
 # Build the TypeScript project
 RUN npm run build
