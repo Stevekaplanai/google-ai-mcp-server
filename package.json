@@ -2,7 +2,7 @@
   "name": "@mcpservers/google-ai",
   "version": "1.0.0",
   "description": "Model Context Protocol server for Google AI services (VEO 3, Imagen 4, Gemini, Lyria 2)",
-  "main": "dist/index.js",
+  "main": "index.js",
   "types": "dist/index.d.ts",
   "bin": {
     "google-ai-mcp": "./dist/index.js"
