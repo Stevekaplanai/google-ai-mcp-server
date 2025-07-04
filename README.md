@@ -4,7 +4,7 @@
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.3-blue)](https://www.typescriptlang.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Smithery](https://img.shields.io/badge/Smithery-Featured-brightgreen)](https://smithery.ai/mcp/google-ai-mcp)
-[![npm](https://img.shields.io/npm/v/@mcpservers/google-ai)](https://www.npmjs.com/package/@mcpservers/google-ai)
+[![npm](https://img.shields.io/npm/v/@stevekaplanai/google-ai-mcp)](https://www.npmjs.com/package/@stevekaplanai/google-ai-mcp)
 
 A comprehensive Model Context Protocol (MCP) server that integrates Google's cutting-edge AI services (VEO 3, Imagen 4, Gemini, and Lyria 2) with Anthropic's Claude Desktop application.
 
@@ -29,19 +29,22 @@ A comprehensive Model Context Protocol (MCP) server that integrates Google's cut
 
 ## 🚀 Quick Start
 
-### Option 1: Install via Smithery (Recommended)
+### Option 1: Install via Smithery (Coming Soon)
 
-The easiest way to install is through [Smithery](https://smithery.ai):
+Once approved on [Smithery](https://smithery.ai):
 
 ```bash
-npx @smithery/cli install google-ai-mcp
+npx @smithery/cli install --client claude @stevekaplanai/google-ai-mcp
 ```
 
 ### Option 2: Install via npm
 
 ```bash
 # Install globally
-npm install -g @mcpservers/google-ai
+npm install -g @stevekaplanai/google-ai-mcp
+
+# Or use directly with npx
+npx @stevekaplanai/google-ai-mcp
 ```
 
 ### Option 3: Build from source
@@ -115,17 +118,37 @@ GOOGLE_APPLICATION_CREDENTIALS_JSON='{"type":"service_account",...}'
 
 ### 4. Claude Desktop Integration
 
-Add to your Claude Desktop configuration (`~/Library/Application Support/Claude/claude_desktop_config.json`):
+Add to your Claude Desktop configuration:
+
+**macOS**: `~/Library/Application Support/Claude/claude_desktop_config.json`
+**Windows**: `%APPDATA%\Claude\claude_desktop_config.json`
 
 ```json
 {
   "mcpServers": {
     "google-ai": {
-      "command": "node",
-      "args": ["/path/to/google-ai-mcp-server/dist/index.js"],      "env": {
+      "command": "npx",
+      "args": ["@stevekaplanai/google-ai-mcp"],
+      "env": {
         "GOOGLE_CLOUD_PROJECT": "your-project-id",
         "GOOGLE_CLOUD_LOCATION": "us-central1",
         "GOOGLE_APPLICATION_CREDENTIALS_JSON": "{...}"
+      }
+    }
+  }
+}
+```
+
+For testing with mock mode:
+
+```json
+{
+  "mcpServers": {
+    "google-ai": {
+      "command": "npx",
+      "args": ["@stevekaplanai/google-ai-mcp"],
+      "env": {
+        "USE_MOCK": "true"
       }
     }
   }
