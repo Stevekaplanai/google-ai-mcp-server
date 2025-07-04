@@ -1,39 +1,56 @@
-# Smithery configuration file: https://smithery.ai/docs/config#smitheryyaml
+# Smithery configuration file
+name: google-ai-mcp-server
+version: 1.0.0
+description: Complete MCP server for Google AI services - VEO 3 video generation, Imagen 4 images, Gemini text, and Lyria 2 music
 
+# GitHub repository deployment
+repository: https://github.com/Stevekaplanai/google-ai-mcp-server
+
+# Build configuration
+build:
+  steps:
+    - npm ci
+    - npm run build
+
+# Start command configuration
 startCommand:
   type: stdio
-  configSchema:
-    # JSON Schema defining the configuration options for the MCP.
-    type: object
-    properties:
-      USE_MOCK:
-        type: boolean
-        description: Use mock responses instead of calling Google AI APIs
-        default: true
-      GOOGLE_CLOUD_PROJECT:
-        type: string
-        description: Google Cloud project ID
-      GOOGLE_CLOUD_LOCATION:
-        type: string
-        description: Google Cloud location for Vertex AI
-        default: us-central1
-      GOOGLE_APPLICATION_CREDENTIALS:
-        type: string
-        description: Path to Google Cloud credentials JSON file
-  commandFunction:
-    # A function that produces the CLI command to start the MCP on stdio.
-    # The config object contains the values provided by the user.
-    code: |
-      (config) => {
-        const env = {};
-        if (config.USE_MOCK !== undefined) env.USE_MOCK = config.USE_MOCK;
-        if (config.GOOGLE_CLOUD_PROJECT) env.GOOGLE_CLOUD_PROJECT = config.GOOGLE_CLOUD_PROJECT;
-        if (config.GOOGLE_CLOUD_LOCATION) env.GOOGLE_CLOUD_LOCATION = config.GOOGLE_CLOUD_LOCATION;
-        if (config.GOOGLE_APPLICATION_CREDENTIALS) env.GOOGLE_APPLICATION_CREDENTIALS = config.GOOGLE_APPLICATION_CREDENTIALS;
-        
-        return {
-          command: 'node',
-          args: ['dist/index.js'],
-          env
-        };
-      }
+  command: node
+  args: 
+    - dist/index.js
+    
+# Configuration schema for users
+configSchema:
+  type: object
+  properties:
+    USE_MOCK:
+      type: boolean
+      description: Use mock responses instead of calling Google AI APIs
+      default: true
+    GOOGLE_CLOUD_PROJECT:
+      type: string
+      description: Google Cloud project ID (required for real API calls)
+    GOOGLE_CLOUD_LOCATION:
+      type: string  
+      description: Google Cloud location for Vertex AI
+      default: us-central1
+    GOOGLE_APPLICATION_CREDENTIALS_JSON:
+      type: string
+      description: Google Cloud service account JSON (base64 encoded)
+      
+# Environment variables mapping
+env:
+  USE_MOCK: ${config.USE_MOCK}
+  GOOGLE_CLOUD_PROJECT: ${config.GOOGLE_CLOUD_PROJECT}
+  GOOGLE_CLOUD_LOCATION: ${config.GOOGLE_CLOUD_LOCATION}
+  GOOGLE_APPLICATION_CREDENTIALS_JSON: ${config.GOOGLE_APPLICATION_CREDENTIALS_JSON}
+
+# Health check
+healthCheck:
+  interval: 30
+  timeout: 5
+  
+# Resource requirements
+resources:
+  memory: 512
+  cpu: 0.5
