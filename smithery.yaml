@@ -1,6 +1,6 @@
 # Smithery configuration for NPM-based deployment
 name: @stevekaplanai/google-ai-mcp
-version: 1.0.0
+version: 1.0.1
 description: Complete MCP server for Google AI services - VEO 3 video generation, Imagen 4 images, Gemini text, and Lyria 2 music
 
 # NPM package deployment (not Docker)
