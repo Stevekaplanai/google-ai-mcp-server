@@ -21,7 +21,7 @@ export abstract class BaseGoogleService {
    */
   protected log(message: string, data?: any): void {
     if (this.config.debug) {
-      console.log(`[${this.constructor.name}] ${message}`, data || '');
+      console.error(`[${this.constructor.name}] ${message}`, data || '');
     }
   }
 

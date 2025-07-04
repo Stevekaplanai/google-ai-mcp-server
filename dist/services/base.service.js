@@ -20,7 +20,7 @@ class BaseGoogleService {
      */
     log(message, data) {
         if (this.config.debug) {
-            console.log(`[${this.constructor.name}] ${message}`, data || '');
+            console.error(`[${this.constructor.name}] ${message}`, data || '');
         }
     }
     /**
