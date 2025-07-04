@@ -3,21 +3,20 @@ name: @stevekaplanai/google-ai-mcp
 version: 1.0.0
 description: Complete MCP server for Google AI services - VEO 3 video generation, Imagen 4 images, Gemini text, and Lyria 2 music
 
-# GitHub repository deployment
-repository: https://github.com/Stevekaplanai/google-ai-mcp-server
+# NPM package configuration
+package: 
+  name: "@stevekaplanai/google-ai-mcp"
+  version: "1.0.0"
 
-# Build configuration
-build:
-  steps:
-    - npm ci
-    - npm run build
+# GitHub repository
+repository: https://github.com/Stevekaplanai/google-ai-mcp-server
 
 # Start command configuration
 startCommand:
   type: stdio
-  command: node
+  command: npx
   args: 
-    - dist/index.js
+    - "@stevekaplanai/google-ai-mcp"
     
 # Configuration schema for users
 configSchema:
@@ -36,21 +35,50 @@ configSchema:
       default: us-central1
     GOOGLE_APPLICATION_CREDENTIALS_JSON:
       type: string
-      description: Google Cloud service account JSON (base64 encoded)
+      description: Google Cloud service account JSON (base64 encoded or JSON string)
       
 # Environment variables mapping
-env:
-  USE_MOCK: ${config.USE_MOCK}
-  GOOGLE_CLOUD_PROJECT: ${config.GOOGLE_CLOUD_PROJECT}
-  GOOGLE_CLOUD_LOCATION: ${config.GOOGLE_CLOUD_LOCATION}
-  GOOGLE_APPLICATION_CREDENTIALS_JSON: ${config.GOOGLE_APPLICATION_CREDENTIALS_JSON}
+environment:
+  - name: USE_MOCK
+    value: "${config.USE_MOCK}"
+  - name: GOOGLE_CLOUD_PROJECT
+    value: "${config.GOOGLE_CLOUD_PROJECT}"
+  - name: GOOGLE_CLOUD_LOCATION
+    value: "${config.GOOGLE_CLOUD_LOCATION}"
+  - name: GOOGLE_APPLICATION_CREDENTIALS_JSON
+    value: "${config.GOOGLE_APPLICATION_CREDENTIALS_JSON}"
 
-# Health check
-healthCheck:
-  interval: 30
-  timeout: 5
-  
-# Resource requirements
-resources:
-  memory: 512
-  cpu: 0.5
+# Tool definitions for Smithery display
+tools:
+  - name: veo_generate_video
+    description: Generate videos using Google VEO 3 (5-8 seconds with audio)
+  - name: imagen_generate_image
+    description: Generate photorealistic images using Google Imagen 4
+  - name: gemini_generate_text
+    description: Generate text using Google Gemini models
+  - name: lyria_generate_music
+    description: Generate music using Google Lyria 2 (mock mode)
+  - name: check_operation_status
+    description: Check the status of a long-running operation
+
+# Categories for Smithery
+categories:
+  - AI Tools
+  - Media Generation
+  - Google Cloud
+
+# Tags for discoverability
+tags:
+  - google
+  - vertex-ai
+  - veo
+  - imagen
+  - gemini
+  - lyria
+  - video-generation
+  - image-generation
+  - text-generation
+  - music-generation
+  - mcp
+  - ai
+  - generative-ai
