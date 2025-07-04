@@ -1,26 +1,8 @@
-# Smithery configuration file
-
+name: google-ai-mcp-server
 runtime: container
+
 build:
-  dockerBuildPath: .
   dockerfile: Dockerfile
 
 startCommand:
   type: stdio
-  configSchema:
-    type: object
-    properties:
-      USE_MOCK:
-        type: boolean
-        description: Use mock responses instead of calling Google AI APIs
-        default: true
-      GOOGLE_CLOUD_PROJECT:
-        type: string
-        description: Google Cloud project ID
-      GOOGLE_CLOUD_LOCATION:
-        type: string
-        description: Google Cloud location for Vertex AI
-        default: us-central1
-      GOOGLE_APPLICATION_CREDENTIALS:
-        type: string
-        description: Path to Google Cloud credentials JSON file
