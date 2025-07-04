@@ -1,5 +1,5 @@
 {
-  "name": "google-ai-mcp",
+  "name": "@stevekaplanai/google-ai-mcp",
   "version": "1.0.0",
   "description": "Complete MCP server for Google AI services - VEO 3 video generation, Imagen 4 images, Gemini text, and Lyria 2 music through Vertex AI",
   "author": {

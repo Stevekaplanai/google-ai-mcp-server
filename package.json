@@ -1,5 +1,5 @@
 {
-  "name": "@mcpservers/google-ai",
+  "name": "@stevekaplanai/google-ai-mcp",
   "version": "1.0.0",
   "description": "Model Context Protocol server for Google AI services (VEO 3, Imagen 4, Gemini, Lyria 2)",
   "main": "index.js",
