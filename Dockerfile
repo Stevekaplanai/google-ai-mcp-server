@@ -1,22 +1,15 @@
-FROM node:20
+FROM node:18-alpine
 
 WORKDIR /app
 
-# Copy package files first
-COPY package.json package-lock.json ./
+# Copy package files
+COPY package*.json ./
 
-# Install dependencies with verbose output
-RUN npm ci --loglevel verbose || npm install --loglevel verbose
+# Install production dependencies only
+RUN npm ci --production
 
-# Copy everything else
+# Copy application code (including pre-built dist)
 COPY . .
 
-# Verify dist directory exists
-RUN ls -la dist/
-
-# Set environment
-ENV USE_MOCK=true
-ENV NODE_ENV=production
-
-# Start the MCP server
+# Run the server
 CMD ["node", "dist/index.js"]

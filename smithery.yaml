@@ -1,32 +1,26 @@
 name: google-ai-mcp-server
 description: MCP server for Google AI Studio and Vertex AI APIs - Generate images, videos, text, and music
 version: 1.0.0
-runtime: docker
 license: MIT
-repository: https://github.com/Stevekaplanai/google-ai-mcp-server
-author:
-  name: Steve Kaplan
-  email: steve@stevekaplan.ai
 
-# Docker configuration
-docker:
-  dockerfile: ./Dockerfile
-  port: 3000
-  command: ["node", "dist/index.js"]
-  environment:
-    USE_MOCK: "true"
-    GOOGLE_CLOUD_LOCATION: "us-central1"
-    NODE_ENV: "production"
+configSchema:
+  type: object
+  properties:
+    USE_MOCK:
+      type: boolean
+      description: Use mock responses instead of calling Google AI APIs
+      default: true
+    GOOGLE_CLOUD_PROJECT:
+      type: string
+      description: Google Cloud project ID
+    GOOGLE_CLOUD_LOCATION:
+      type: string
+      description: Google Cloud location for Vertex AI
+      default: us-central1
+    GOOGLE_APPLICATION_CREDENTIALS:
+      type: string
+      description: Path to Google Cloud credentials JSON file
 
-# Build configuration
-build:
-  steps:
-    - copy: package*.json ./
-    - run: npm ci
-    - copy: . .
-    - verify: ls -la dist/
-
-# MCP configuration
-mcp_version: "0.5.0"
-transports:
-  - type: stdio
+exampleConfig:
+  USE_MOCK: true
+  GOOGLE_CLOUD_LOCATION: us-central1
