@@ -1,26 +1,24 @@
-name: google-ai-mcp-server
-description: MCP server for Google AI Studio and Vertex AI APIs - Generate images, videos, text, and music
-version: 1.0.0
-license: MIT
+# Smithery configuration file: https://smithery.ai/docs/config#smitheryyaml
 
-configSchema:
-  type: object
-  properties:
-    USE_MOCK:
-      type: boolean
-      description: Use mock responses instead of calling Google AI APIs
-      default: true
-    GOOGLE_CLOUD_PROJECT:
-      type: string
-      description: Google Cloud project ID
-    GOOGLE_CLOUD_LOCATION:
-      type: string
-      description: Google Cloud location for Vertex AI
-      default: us-central1
-    GOOGLE_APPLICATION_CREDENTIALS:
-      type: string
-      description: Path to Google Cloud credentials JSON file
+build:
+  dockerBuildPath: .
 
-exampleConfig:
-  USE_MOCK: true
-  GOOGLE_CLOUD_LOCATION: us-central1
+startCommand:
+  type: stdio
+  configSchema:
+    type: object
+    properties:
+      USE_MOCK:
+        type: boolean
+        description: Use mock responses instead of calling Google AI APIs
+        default: true
+      GOOGLE_CLOUD_PROJECT:
+        type: string
+        description: Google Cloud project ID
+      GOOGLE_CLOUD_LOCATION:
+        type: string
+        description: Google Cloud location for Vertex AI
+        default: us-central1
+      GOOGLE_APPLICATION_CREDENTIALS:
+        type: string
+        description: Path to Google Cloud credentials JSON file
