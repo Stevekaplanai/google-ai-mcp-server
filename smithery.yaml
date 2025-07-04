@@ -1,24 +1,23 @@
-# Smithery configuration file
+# Smithery configuration for NPM-based deployment
 name: @stevekaplanai/google-ai-mcp
 version: 1.0.0
 description: Complete MCP server for Google AI services - VEO 3 video generation, Imagen 4 images, Gemini text, and Lyria 2 music
 
-# NPM package configuration
-package: 
-  name: "@stevekaplanai/google-ai-mcp"
-  version: "1.0.0"
+# NPM package deployment (not Docker)
+runtime: npm
+package: "@stevekaplanai/google-ai-mcp"
 
 # GitHub repository
 repository: https://github.com/Stevekaplanai/google-ai-mcp-server
 
-# Start command configuration
+# Start command - uses npx to run from NPM
 startCommand:
   type: stdio
   command: npx
   args: 
     - "@stevekaplanai/google-ai-mcp"
     
-# Configuration schema for users
+# User configuration schema
 configSchema:
   type: object
   properties:
@@ -36,38 +35,29 @@ configSchema:
     GOOGLE_APPLICATION_CREDENTIALS_JSON:
       type: string
       description: Google Cloud service account JSON (base64 encoded or JSON string)
-      
-# Environment variables mapping
-environment:
-  - name: USE_MOCK
-    value: "${config.USE_MOCK}"
-  - name: GOOGLE_CLOUD_PROJECT
-    value: "${config.GOOGLE_CLOUD_PROJECT}"
-  - name: GOOGLE_CLOUD_LOCATION
-    value: "${config.GOOGLE_CLOUD_LOCATION}"
-  - name: GOOGLE_APPLICATION_CREDENTIALS_JSON
-    value: "${config.GOOGLE_APPLICATION_CREDENTIALS_JSON}"
 
-# Tool definitions for Smithery display
+# Environment variables from configuration
+environmentVariables:
+  USE_MOCK: "{{config.USE_MOCK}}"
+  GOOGLE_CLOUD_PROJECT: "{{config.GOOGLE_CLOUD_PROJECT}}"
+  GOOGLE_CLOUD_LOCATION: "{{config.GOOGLE_CLOUD_LOCATION}}"
+  GOOGLE_APPLICATION_CREDENTIALS_JSON: "{{config.GOOGLE_APPLICATION_CREDENTIALS_JSON}}"
+
+# MCP tools provided
 tools:
-  - name: veo_generate_video
-    description: Generate videos using Google VEO 3 (5-8 seconds with audio)
-  - name: imagen_generate_image
-    description: Generate photorealistic images using Google Imagen 4
-  - name: gemini_generate_text
-    description: Generate text using Google Gemini models
-  - name: lyria_generate_music
-    description: Generate music using Google Lyria 2 (mock mode)
-  - name: check_operation_status
-    description: Check the status of a long-running operation
+  - veo_generate_video
+  - imagen_generate_image
+  - gemini_generate_text
+  - lyria_generate_music
+  - check_operation_status
 
-# Categories for Smithery
+# Categories for discovery
 categories:
   - AI Tools
   - Media Generation
   - Google Cloud
 
-# Tags for discoverability
+# Tags for search
 tags:
   - google
   - vertex-ai
