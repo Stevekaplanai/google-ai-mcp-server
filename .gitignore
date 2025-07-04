@@ -16,6 +16,9 @@ key.json
 credentials.json
 *.pem
 *.key
+credentials/
+service-account-key.json
+service-account-*.json
 
 # Logs
 logs/

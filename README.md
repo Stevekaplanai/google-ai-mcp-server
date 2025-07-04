@@ -1,336 +1,218 @@
 # Google AI MCP Server
 
-[![MCP](https://img.shields.io/badge/MCP-v1.0-blue)](https://modelcontextprotocol.io)
-[![TypeScript](https://img.shields.io/badge/TypeScript-5.3-blue)](https://www.typescriptlang.org/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Smithery](https://img.shields.io/badge/Smithery-Featured-brightgreen)](https://smithery.ai/mcp/google-ai-mcp)
-[![npm](https://img.shields.io/npm/v/@stevekaplanai/google-ai-mcp)](https://www.npmjs.com/package/@stevekaplanai/google-ai-mcp)
+A Model Context Protocol (MCP) server that provides access to Google's AI models including Imagen 3, VEO 3, Gemini, and Lyria through Claude Desktop.
 
-A comprehensive Model Context Protocol (MCP) server that integrates Google's cutting-edge AI services (VEO 3, Imagen 4, Gemini, and Lyria 2) with Anthropic's Claude Desktop application.
-
-## 🌟 Features
-
-- **🎬 VEO 3 Video Generation**: Create high-quality videos with native audio (5-8 seconds)
-- **🎨 Imagen 4 Image Generation**: Generate photorealistic images with style control
-- **💬 Gemini Text Generation**: Access Google's latest LLMs (1.5 Pro, Flash, 2.0 Flash)
-- **🎵 Lyria 2 Music Generation**: Create studio-quality music (up to 60 seconds)
-- **⚡ Batch Processing**: Process multiple generations in parallel
-- **💰 Cost Estimation**: Know costs before making API calls
-- **🛡️ Quota Management**: Smart rate limiting and usage tracking
-- **💾 Smart Caching**: Reduce costs with intelligent response caching
-
-## 📋 Prerequisites
-
-- Node.js 18 or higher
-- Google Cloud Project with billing enabled
-- Vertex AI API enabled
-- Service account with appropriate permissions
-- VEO 3 allowlist access (request through [Google Form](https://forms.gle/your-form))
+[![NPM Version](https://img.shields.io/npm/v/@stevekaplanai/google-ai-mcp)](https://www.npmjs.com/package/@stevekaplanai/google-ai-mcp)
+[![License](https://img.shields.io/npm/l/@stevekaplanai/google-ai-mcp)](LICENSE)
 
 ## 🚀 Quick Start
 
-### Option 1: Install via Smithery (Coming Soon)
-
-Once approved on [Smithery](https://smithery.ai):
-
-```bash
-npx @smithery/cli install --client claude @stevekaplanai/google-ai-mcp
-```
-
-### Option 2: Install via npm
-
-```bash
-# Install globally
-npm install -g @stevekaplanai/google-ai-mcp
-
-# Or use directly with npx
-npx @stevekaplanai/google-ai-mcp
-```
-
-### Option 3: Build from source
-
-```bash
-# Clone and build from source
-git clone https://github.com/Stevekaplanai/google-ai-mcp-server.git
-cd google-ai-mcp-server
-npm install
-npm run build
-```
-
-### 2. Google Cloud Setup
-
-For testing with Steve's project (starry-center-464218-r3):
-
-```bash
-# Set your project
-gcloud config set project starry-center-464218-r3
-
-# Enable required APIs
-gcloud services enable aiplatform.googleapis.com
-
-# Create service account (if not already done)
-gcloud iam service-accounts create mcp-vertex-ai \
-  --display-name="MCP Vertex AI Service Account"
-
-# Grant necessary permissions
-gcloud projects add-iam-policy-binding starry-center-464218-r3 \
-  --member="serviceAccount:mcp-vertex-ai@starry-center-464218-r3.iam.gserviceaccount.com" \
-  --role="roles/aiplatform.user"
-
-# Generate key
-gcloud iam service-accounts keys create credentials.json \
-  --iam-account=mcp-vertex-ai@starry-center-464218-r3.iam.gserviceaccount.com
-```
-
-For general setup:
-
-```bash
-# Create service account
-gcloud iam service-accounts create mcp-vertex-ai \
-  --display-name="MCP Vertex AI Service Account"
-
-# Grant necessary permissions
-gcloud projects add-iam-policy-binding YOUR_PROJECT_ID \
-  --member="serviceAccount:mcp-vertex-ai@YOUR_PROJECT_ID.iam.gserviceaccount.com" \
-  --role="roles/aiplatform.user"
-
-# Download key
-gcloud iam service-accounts keys create key.json \
-  --iam-account=mcp-vertex-ai@YOUR_PROJECT_ID.iam.gserviceaccount.com
-```
-### 3. Configuration
-
-Set environment variables:
-
-```bash
-export GOOGLE_CLOUD_PROJECT="your-project-id"
-export GOOGLE_CLOUD_LOCATION="us-central1"
-export GOOGLE_APPLICATION_CREDENTIALS_JSON='{"type":"service_account",...}'
-```
-
-Or create a `.env` file:
-
-```env
-GOOGLE_CLOUD_PROJECT=your-project-id
-GOOGLE_CLOUD_LOCATION=us-central1
-GOOGLE_APPLICATION_CREDENTIALS_JSON='{"type":"service_account",...}'
-```
-
-### 4. Claude Desktop Integration
+### Install via NPM (Recommended)
 
 Add to your Claude Desktop configuration:
 
-**macOS**: `~/Library/Application Support/Claude/claude_desktop_config.json`
-**Windows**: `%APPDATA%\Claude\claude_desktop_config.json`
-
 ```json
 {
   "mcpServers": {
     "google-ai": {
       "command": "npx",
-      "args": ["@stevekaplanai/google-ai-mcp"],
+      "args": ["@stevekaplanai/google-ai-mcp@latest"],
       "env": {
+        "USE_MOCK": "false",
         "GOOGLE_CLOUD_PROJECT": "your-project-id",
         "GOOGLE_CLOUD_LOCATION": "us-central1",
-        "GOOGLE_APPLICATION_CREDENTIALS_JSON": "{...}"
+        "GOOGLE_APPLICATION_CREDENTIALS_JSON": "{\"type\":\"service_account\",...}"
       }
     }
   }
 }
 ```
 
-For testing with mock mode:
+## ✨ Features
+
+- **Imagen 3** - Generate photorealistic images with text prompts
+- **VEO 3** - Create 5-8 second videos with audio (coming soon)
+- **Gemini** - Access Google's latest language models
+- **Lyria 2** - Generate up to 60 seconds of music (coming soon)
+
+## 📋 Prerequisites
+
+1. Google Cloud Project with billing enabled
+2. Vertex AI API enabled
+3. Service account with appropriate permissions
+4. Claude Desktop installed
+
+## 🔧 Setup Instructions
+
+### 1. Enable Required APIs
+
+```bash
+gcloud services enable aiplatform.googleapis.com
+```
+
+### 2. Create Service Account
+
+```bash
+# Create service account
+gcloud iam service-accounts create google-ai-mcp-server \
+    --display-name="Google AI MCP Server Service Account"
+
+# Grant necessary permissions
+gcloud projects add-iam-policy-binding YOUR_PROJECT_ID \
+    --member="serviceAccount:google-ai-mcp-server@YOUR_PROJECT_ID.iam.gserviceaccount.com" \
+    --role="roles/aiplatform.user"
+
+# Create and download key
+gcloud iam service-accounts keys create service-account-key.json \
+    --iam-account=google-ai-mcp-server@YOUR_PROJECT_ID.iam.gserviceaccount.com
+```
+
+### 3. Configure Claude Desktop
+
+Update your Claude Desktop config file:
+- Windows: `%APPDATA%\Claude\claude_desktop_config.json`
+- macOS: `~/Library/Application Support/Claude/claude_desktop_config.json`
 
 ```json
 {
   "mcpServers": {
     "google-ai": {
       "command": "npx",
-      "args": ["@stevekaplanai/google-ai-mcp"],
+      "args": ["@stevekaplanai/google-ai-mcp@latest"],
       "env": {
-        "USE_MOCK": "true"
+        "USE_MOCK": "false",
+        "GOOGLE_CLOUD_PROJECT": "your-project-id",
+        "GOOGLE_CLOUD_LOCATION": "us-central1",
+        "GOOGLE_APPLICATION_CREDENTIALS_JSON": "paste-json-here"
       }
     }
   }
 }
+```
+
+⚠️ **Important**: When pasting the JSON credentials:
+- Escape all newlines in the private key: `\n` → `\\n`
+- Keep the entire JSON on one line
+- Don't include outer quotes
+
+### 4. Restart Claude Desktop
+
+After updating the configuration, completely restart Claude Desktop for changes to take effect.
+
+## 🎨 Usage Examples
+
+### Generate an Image
+```
+"Create a photorealistic image of a ninja duck in a dojo"
+```
+
+### Generate Multiple Variations
+```
+"Generate 4 variations of a cyberpunk city at night"
+```
+
+### Different Aspect Ratios
+```
+"Create a 16:9 landscape image of mountains at sunset"
+"Generate a 9:16 portrait image for a phone wallpaper"
 ```
 
 ## 🛠️ Available Tools
 
-### `veo_generate_video`
-Generate videos using Google VEO 3.
+### imagen_generate_image
+Generate images using Google Imagen 3.
 
 **Parameters:**
-- `prompt` (string): Text description of the video
-- `duration` (number): Length in seconds (5-8)
-- `aspectRatio` (string): Video aspect ratio (16:9, 9:16, 1:1)
-- `imageBase64` (string, optional): Base64 image for image-to-video
-- `sampleCount` (number): Number of videos to generate (1-4)
-- `negativePrompt` (string, optional): What to avoid in generation
-- `outputStorageUri` (string, optional): GCS bucket for output
+- `prompt` (required): Text description of the image
+- `aspectRatio`: "1:1" (default), "16:9", "9:16", "4:3", "3:4"
+- `sampleCount`: 1-8 images (default: 1)
+- `negativePrompt`: What to avoid in the generation
+- `personGeneration`: "allow" (default) or "disallow"
 
-**Example:**
-```javascript
-{
-  "prompt": "A serene sunrise over mountains with mist",
-  "duration": 8,
-  "aspectRatio": "16:9"
-}```
-
-### `imagen_generate_image`
-Generate images using Google Imagen 4.
-
-**Parameters:**
-- `prompt` (string): Text description of the image
-- `sampleCount` (number): Number of images (1-8)
-- `aspectRatio` (string): Image aspect ratio
-- `negativePrompt` (string, optional): What to avoid
-- `language` (string): Prompt language (default: 'en')
-
-### `gemini_generate_text`
+### gemini_generate_text
 Generate text using Gemini models.
 
 **Parameters:**
-- `prompt` (string): Input text prompt
-- `model` (string): Model to use (gemini-1.5-pro, gemini-1.5-flash, gemini-2.0-flash-exp)
-- `temperature` (number): Controls randomness (0-2)
-- `maxTokens` (number): Maximum tokens to generate
-- `topP` (number): Nucleus sampling parameter
-- `topK` (number): Top-K sampling parameter
+- `prompt` (required): Input text prompt
+- `model`: "gemini-1.5-flash" (default), "gemini-1.5-pro", "gemini-2.0-flash-exp"
+- `temperature`: 0-2 (default: 0.7)
+- `maxTokens`: 1-8192 (default: 2048)
 
-### `lyria_generate_music`
-Generate music using Lyria 2.
+### veo_generate_video (Coming Soon)
+Generate videos with VEO 3.
 
-**Parameters:**
-- `prompt` (string): Music description- `duration` (number): Length in seconds (5-60)
-- `genre` (string, optional): Music genre
-- `mood` (string, optional): Music mood
-- `instruments` (array, optional): Instruments to include
+### lyria_generate_music (Coming Soon)
+Generate music with Lyria 2.
 
-### `check_operation_status`
-Check the status of long-running operations.
+## 🧪 Mock Mode
 
-**Parameters:**
-- `operationName` (string): Operation ID from generation request
-- `modelType` (string): Type of model (veo, imagen, lyria)
+For testing without API calls, set `USE_MOCK: "true"` in your configuration. This will return sample responses without using your Google Cloud quota.
 
-## 📚 Resources
+## 🔍 Troubleshooting
 
-The server provides access to these resources:
+### JSON Parsing Errors
+If you see "Unexpected token" errors:
+1. Update to the latest version: `@stevekaplanai/google-ai-mcp@latest`
+2. Restart Claude Desktop
 
-- `google-ai://models` - Information about available models and capabilities
-- `google-ai://pricing` - Current pricing information for each service
+### Authentication Errors
+- Verify your service account has the `aiplatform.user` role
+- Check that the JSON credentials are properly escaped
+- Ensure the project ID matches your service account
 
-## 💡 Usage Examples
+### API Not Found Errors
+- Confirm Vertex AI API is enabled in your project
+- Verify you're using a supported location (us-central1 recommended)
 
-### In Claude Desktop
+## 📊 Supported Models
 
-```
-Use veo_generate_video to create a 5-second video of "A futuristic city at sunset with flying cars"
+### Imagen
+- `imagen-3.0-generate-001` - Latest high-quality model
+- `imagen-3.0-fast-generate-001` - Faster generation
 
-Generate 4 product photos of "A modern minimalist watch on white background" using imagen_generate_image
+### Gemini
+- `gemini-1.5-pro` - Most capable model
+- `gemini-1.5-flash` - Optimized for speed
+- `gemini-2.0-flash-exp` - Experimental features
 
-Write a blog post about sustainable energy using gemini_generate_text with model gemini-1.5-pro
+## 🔒 Security Notes
 
-Create 30 seconds of upbeat electronic music using lyria_generate_music
-```
-## 🔧 Advanced Features
+- Never commit service account keys to version control
+- Use environment variables for production deployments
+- Regularly rotate service account keys
+- Limit service account permissions to minimum required
 
-### Batch Processing
-Process multiple generations in parallel:
-```javascript
-// Coming soon: Batch API support
-```
+## 📝 Changelog
 
-### Cost Estimation
-Get cost estimates before generation:
-```javascript
-// Integrated cost calculation based on current pricing
-```
+### v1.0.2 (Latest)
+- Fixed JSON parsing errors by redirecting debug logs to stderr
+- Improved error handling for API responses
+- Added support for real Imagen API endpoints
 
-### Quota Management
-Built-in rate limiting to prevent API overages:
-- VEO: 5 requests/minute
-- Imagen: 20 requests/minute
-- Gemini: 60 requests/minute
-- Lyria: 3 requests/minute
-
-## 🐛 Troubleshooting
-
-### "Permission denied" error
-Ensure your service account has the `roles/aiplatform.user` role:
-```bash
-gcloud projects add-iam-policy-binding YOUR_PROJECT_ID \
-  --member="serviceAccount:YOUR_SERVICE_ACCOUNT@YOUR_PROJECT_ID.iam.gserviceaccount.com" \
-  --role="roles/aiplatform.user"
-```
-
-### "VEO 3 not available" error
-VEO 3 requires allowlist access. Request access through the [Google Form](https://forms.gle/your-form).
-### "Invalid location" error
-Not all models are available in all regions. Try `us-central1` or check [available regions](https://cloud.google.com/vertex-ai/docs/general/locations).
-
-## 📈 Roadmap
-
-- [ ] Batch processing API
-- [ ] Streaming responses
-- [ ] Multi-modal prompts for Gemini
-- [ ] Advanced video editing (VEO)
-- [ ] Image editing capabilities (Imagen)
-- [ ] Custom model fine-tuning
-- [ ] Webhook notifications
-- [ ] Usage analytics dashboard
-
-## 🚀 Available on Smithery
-
-**⚠️ Note: Smithery deployment is currently experiencing technical issues. Please use the manual installation method in the Quickstart section above or see [ALTERNATIVE_DEPLOYMENT.md](ALTERNATIVE_DEPLOYMENT.md) for other options.**
-
-This MCP server is available on [Smithery](https://smithery.ai/mcp/google-ai-mcp), the MCP server registry:
-
-### Quick Install via Smithery CLI
-```bash
-npx @smithery/cli install google-ai-mcp
-```
-
-### Features on Smithery
-- ✅ One-click installation
-- ✅ Automatic Claude Desktop configuration
-- ✅ Managed updates
-- ✅ Community support
-- ✅ Usage analytics
-
-Visit our [Smithery page](https://smithery.ai/mcp/google-ai-mcp) for more information.
+### v1.0.1
+- Initial release with mock mode
+- Basic Imagen and Gemini support
 
 ## 🤝 Contributing
 
-Contributions are welcome! Please:
-
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
+Contributions are welcome! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
 
 ## 📄 License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+MIT License - see [LICENSE](LICENSE) for details.
 
 ## 🙏 Acknowledgments
 
-- Built with the [Model Context Protocol SDK](https://github.com/modelcontextprotocol/typescript-sdk)- Google Cloud Platform and Vertex AI teams
-- Anthropic for creating the MCP protocol
-- The open source community
+- Built for [Claude Desktop](https://claude.ai/desktop) by Anthropic
+- Uses Google's [Vertex AI](https://cloud.google.com/vertex-ai) platform
+- Implements the [Model Context Protocol](https://github.com/anthropics/mcp)
 
-## 📞 Support
+## 📧 Support
 
-- **Issues**: [GitHub Issues](https://github.com/Stevekaplanai/google-ai-mcp-server/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/Stevekaplanai/google-ai-mcp-server/discussions)
-- **Email**: steve@stevekaplan.ai
-
-## 🌟 Star History
-
-[![Star History Chart](https://api.star-history.com/svg?repos=Stevekaplanai/google-ai-mcp-server&type=Date)](https://star-history.com/#Stevekaplanai/google-ai-mcp-server&Date)
+For issues and questions:
+- GitHub Issues: [google-ai-mcp-server/issues](https://github.com/stevekaplanai/google-ai-mcp-server/issues)
+- NPM Package: [@stevekaplanai/google-ai-mcp](https://www.npmjs.com/package/@stevekaplanai/google-ai-mcp)
 
 ---
 
-Made with ❤️ by [Steve Kaplan](https://github.com/Stevekaplanai)
+Made with ❤️ by [Steve Kaplan](https://github.com/stevekaplanai)
