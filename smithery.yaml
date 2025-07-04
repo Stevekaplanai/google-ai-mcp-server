@@ -3,30 +3,30 @@ description: MCP server for Google AI Studio and Vertex AI APIs - Generate image
 version: 1.0.0
 runtime: docker
 license: MIT
+repository: https://github.com/Stevekaplanai/google-ai-mcp-server
 author:
   name: Steve Kaplan
   email: steve@stevekaplan.ai
-  url: https://github.com/Stevekaplanai
 
 # Docker configuration
 docker:
-  build_context: .
-  dockerfile: Dockerfile
+  dockerfile: ./Dockerfile
+  port: 3000
+  command: ["node", "dist/index.js"]
   environment:
-    - USE_MOCK=true
-    - GOOGLE_CLOUD_LOCATION=us-central1
+    USE_MOCK: "true"
+    GOOGLE_CLOUD_LOCATION: "us-central1"
+    NODE_ENV: "production"
 
-# MCP server configuration
-mcp:
-  transport: stdio
-  tools:
-    - name: veo_generate_video
-      description: Generate videos using Google VEO 3 (5-8 seconds with audio)
-    - name: imagen_generate_image
-      description: Generate photorealistic images using Google Imagen 4
-    - name: gemini_generate_text
-      description: Generate text using Google Gemini models
-    - name: lyria_generate_music
-      description: Generate music using Google Lyria 2 (up to 60 seconds)
-    - name: check_operation_status
-      description: Check the status of a long-running operation
+# Build configuration
+build:
+  steps:
+    - copy: package*.json ./
+    - run: npm ci
+    - copy: . .
+    - verify: ls -la dist/
+
+# MCP configuration
+mcp_version: "0.5.0"
+transports:
+  - type: stdio
