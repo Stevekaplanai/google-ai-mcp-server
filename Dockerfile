@@ -1,15 +1,9 @@
-FROM node:20-alpine
+FROM node:20
 
 WORKDIR /app
 
-# Copy everything
 COPY . .
 
-# Install only production dependencies
-RUN npm ci --only=production
+RUN npm install
 
-# Set environment
-ENV USE_MOCK=true
-
-# Run the pre-built server
 CMD ["node", "dist/index.js"]

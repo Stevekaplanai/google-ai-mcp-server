@@ -5,7 +5,7 @@ yarn-debug.log*
 yarn-error.log*
 
 # Build outputs (we'll build fresh in Docker)
-dist/
+# dist/ - Commented out to include pre-built files
 build/
 *.tsbuildinfo
 
