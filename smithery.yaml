@@ -1,7 +1,9 @@
-# Smithery configuration file: https://smithery.ai/docs/config#smitheryyaml
+# Smithery configuration file
 
+runtime: container
 build:
   dockerBuildPath: .
+  dockerfile: Dockerfile
 
 startCommand:
   type: stdio
