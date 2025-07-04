@@ -260,6 +260,8 @@ Not all models are available in all regions. Try `us-central1` or check [availab
 
 ## 🚀 Available on Smithery
 
+**⚠️ Note: Smithery deployment is currently experiencing technical issues. Please use the manual installation method in the Quickstart section above or see [ALTERNATIVE_DEPLOYMENT.md](ALTERNATIVE_DEPLOYMENT.md) for other options.**
+
 This MCP server is available on [Smithery](https://smithery.ai/mcp/google-ai-mcp), the MCP server registry:
 
 ### Quick Install via Smithery CLI
